@@ -5,12 +5,14 @@
     "main": "index.js",
     "scripts": {
         "dev": "nodemon src/server.ts",
-        "test": "jest --watchAll --runInBand --coverage",
+        "test": "jest --no-cache --coverage --all --runInBand",
+        "test:watch" : "jest --watchAll --runInBand --coverage",
         "format:check": "prettier . --check",
         "format:fix": "prettier . --write",
         "test:prod": "jest --runInBand",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
+        "build": "rm -rf ./dist && tsc",
         "prepare": "husky"
     },
     "author": "Chiranjeev Thomas",

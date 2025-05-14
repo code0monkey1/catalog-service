@@ -1,0 +1,51 @@
+# file : .github/workflows/ci.yaml
+
+name: CI
+on:
+    pull_request: # this is when a feature branch create a pull_request to main
+        branches:
+            - main 
+    push:
+        branches: # this is when a feature branch successfully merges to main ( that's also conderered as a push event to main ) 
+            - main
+jobs: # every job runs on a different machine [ i.e has separate context ] 
+    build-and-test: 
+        name: Build the project
+        runs-on: ubuntu-latest # the os image already on github 
+        # if: github.event_name == 'pull_request' 
+        steps:
+            - uses: actions/checkout@v3 # this is a checkout package alreay on github, which downloads our code to github action server
+            - name: Install dependencies
+              run: npm ci
+            - name: Run eslint
+              run: npm run lint
+            - name: Test and coverage
+              run: npm run test
+            - name: Build-ts
+              run: npm run build
+            - name: SonarCloud Scan
+              uses: SonarSource/sonarcloud-github-action@master
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # we get this automatically from GitHub
+                  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+    build-and-push-docker:
+        name: Build and Push Docker Image
+        needs: build-and-test # the `needs` ensures that build-and-push-docker only runs after `build-and-test` has already run
+        runs-on: ubuntu-latest
+        env: # we are explicitly extracting these as env variable as we'll use them multiple times in the following code
+            IMAGE_NAME: vonnwatson/catalog_service # vonnwatson/mernstack_auth_service:build-2 ( automatically adds the latest build number ) 
+            IMAGE_TAG: build-${{ github.run_number }} # this automatically adds the latest build number 
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' # run only if the merge( i.e push ) is happening to the main branch
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v3
+            - name: Log in to Docker Hub
+              uses: docker/login-action@v1 # this is an prebuilt action used to log into docker hub
+              with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }} # vonnwatson ( the name on dockerhub ) 
+                  password: ${{ secrets.DOCKERHUB_PASSWORD }} # docker hub access token to be put here
+            - name: Build Docker image
+              run: docker build -t ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} -f docker/prod/Dockerfile .
+            - name: Push Docker image to Docker Hub
+              run: docker push ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
