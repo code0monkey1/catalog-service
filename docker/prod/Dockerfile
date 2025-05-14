@@ -14,7 +14,7 @@ COPY package*.json ./
 # ( LHS represents your file system , RHS is image file system (i.e /app folder ) )
 # Here , the package.json and package.lock.json is copied into the /app folder of the image 
 
-RUN npm ci
+RUN npm ci --ignore-scripts
 # The `ci` ensures that it installs the exact version of packages as mentioned in the package.lock.json file
 
 COPY . .
