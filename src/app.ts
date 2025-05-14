@@ -5,7 +5,7 @@ const app = express();
 import "express-async-errors";
 
 app.get("/data", (req, res) => {
-    res.json({ data: "will  crash again" });
+    res.json({ data: "working" });
 });
 
 app.use(
