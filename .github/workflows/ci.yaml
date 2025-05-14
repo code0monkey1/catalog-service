@@ -16,7 +16,7 @@ jobs: # every job runs on a different machine [ i.e has separate context ]
         steps:
             - uses: actions/checkout@v3 # this is a checkout package alreay on github, which downloads our code to github action server
             - name: Install dependencies
-              run: npm ci
+              run: npm ci 
             - name: Run eslint
               run: npm run lint
             - name: Test and coverage
